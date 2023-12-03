@@ -120,13 +120,11 @@ sav_gridcell_dim = kernels_xr.indexes["gridcell"]
 print("Please ignore this warning")
 kernels_xr.coords['gridcell'] = np.linspace(0, kernels_xr.shape[0], kernels_xr.shape[0])
 
-# fill any of the few remaining NaNs with mean within each kernel, so it does not affect metric value
-kernels_xr = kernels_xr.fillna(kernels_xr.mean(dim='gridcell'))
+
+kernels_xr = kernels_xr.fillna(kernels_xr.mean(dim='gridcell')) # fill any of the few remaining NaNs with mean within each kernel, so it does not affect metric value
 
 # kernels_xr = kernels_xr.fillna(0)
-
-# fill any of the few remaining NaNs with mean within each kernel, so it does not affect metric value # TODO find a better way to fill missing NaNs inside kernel
-# kernels_xr = kernels_xr.fillna(np.random.random())
+# kernels_xr = kernels_xr.fillna(np.random.random()) # fill any of the few remaining NaNs with mean within each kernel, so it does not affect metric value
 
 # grouping by gridcell so
 kernel_groups = kernels_xr.groupby('gridcell')
@@ -149,23 +147,6 @@ tdiff = t1 - t0
 
 kernel_density = kernel_density.assign_coords(gridcell=sav_gridcell_dim.set_names(["latitude", "longitude"]))
 
-kernel_density.to_netcdf()
-
-kernel_density[500].plot()
-
-row_max = kernel_density.max(dim='nd_cell')
-
-data_modified = kernel_density.where(kernel_density != row_max, 0)
-
-data_modified[900].plot()
-
-pixel_density = kernel_density[0]
-
-pixel_density.plot()
-
-cells_xr[:, 0]
-
-test = pixel_density.unstack('nd_cell')
 # %% Apply functional metrics to kernels by groups
 
 # %% Compute and export FRic
@@ -184,7 +165,6 @@ kde_fric_uf = xr.apply_ufunc(kde_fric_pix,
                              vectorize=False)
 
 kde_fric_map = kde_fric_uf.unstack('gridcell')
-
 kde_fric_map.plot()
 
 # %% Compute and export FDiv
@@ -200,8 +180,8 @@ kde_fdiv_uf = xr.apply_ufunc(kde_fdiv_pix,
                              vectorize=False)
 
 kde_fdiv_map = kde_fdiv_uf.unstack('gridcell')
-
 kde_fdiv_map.plot()
+
 # %% Compute and export FEve
 # # TODO Implement computation of Functional Evenness (FEve). Needs to be completed.
 #
@@ -257,64 +237,9 @@ masked_fdiv.plot()
 masked_fdiv.rio.to_raster(file_out_fdiv)
 
 # # export FEve mask file for
+# # TODO Implement computation of Functional Evenness (FEve). Needs to be completed.
 # masked_feve = nan_mask * kde_feve_map # applies mask
 # masked_feve = masked_fdiv.where(masked_feve != 0, np.nan)
 # plt.figure()
 # masked_feve.plot()
 # masked_feve.rio.to_raster(file_out_feve)
-
-# %% Optional plotting
-
-traits_np = traits_xr.values.T
-traits_np = np.transpose(traits_xr.values, (1, 0, 2))
-
-# plot check per trait
-plt.figure()
-traits_xr_norm.isel(traits=2).plot()
-
-# Plot trait maps & hist & scatter
-trait_rgb(traits_np[:, :, :])
-trait_composite(traits_np, r=0, g=1, b=2)  # to plot the scatter
-trait_hist(traits_np, 100)
-
-# traits scatter matrix
-pixel_stack = traits_xr.stack(gridcell=("latitude", "longitude"))
-
-trait_df_area_1 = pd.DataFrame(np.array(pixel_stack.T.squeeze()), columns=trait_names)
-pd.plotting.scatter_matrix(trait_df_area_1, figsize=(6, 6), alpha=0.005)
-plt.show()
-
-# Print stats of traits
-trait_stats = (np.nanmean(traits_np[:, :, 0]), np.nanstd(traits_np[:, :, 0]), np.nanmean(traits_np[:, :, 1]),
-               np.nanstd(traits_np[:, :, 1]), np.nanmean(traits_np[:, :, 2]), np.nanstd(traits_np[:, :, 2]))
-print(trait_stats)
-
-# plot kernels TPDs examples
-kernels_xr_plot = kernels_xr[150:220, :, [0, 1, 2]]
-
-kde_plot(kernels_xr_plot, n_cells=n_cells, pixel=1, minv=norm_min, maxv=norm_max, kernel_type=kernel_type,
-         bandwidth=bandwidth, sel_trait_1=0, sel_trait_2=2, trait_names=trait_names)
-
-# Calculates statistics
-# find original image centroid
-lat_centroid = traits_xr[0][int(len(traits_xr['latitude']) / 2)][int(len(traits_xr['longitude']) / 2)].coords[
-    'latitude'].values
-long_centroid = traits_xr[0][int(len(traits_xr['latitude']) / 2)][int(len(traits_xr['longitude']) / 2)].coords[
-    'longitude'].values
-
-# # get the value at the center of an area for an FD metric
-# ric_centroid = kde_fric_map.sel(latitude=lat_centroid, longitude=long_centroid, method='nearest').values
-# div_centroid = kde_fdiv_map.sel(latitude=lat_centroid, longitude=long_centroid, method='nearest').values
-# eve_centroid = kde_feve_map.sel(latitude=lat_centroid, longitude=long_centroid, method='nearest').values
-#
-# # get the mean FD metric of an area
-#
-# ric_mean = kde_fric_map.mean(skipna=True).values
-# div_mean = kde_fdiv_map.mean(skipna=True).values
-# eve_mean = kde_feve_map.mean(skipna=True).values
-#
-# # Print stats of traits
-# image_FD_stats = (ric_centroid, ric_mean, eve_centroid, eve_mean, div_centroid, div_mean)
-#
-# print(*image_FD_stats, sep=',')
-# print("It took %.3f second to run the kernel" % (tdiff))
