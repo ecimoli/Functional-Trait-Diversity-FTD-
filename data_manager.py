@@ -378,6 +378,3 @@ def GTiff_stack(*args, outfile, model):
     with rio.open(outfile, 'w', **out_meta) as dest:
         for band_nr, src in enumerate(file_list, start=1):
             dest.write(src, band_nr)
-
-
-    # return
