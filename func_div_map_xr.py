@@ -1,12 +1,11 @@
 '''
 Script to compute spatially explicit functional diversity metrics such as Functional Richness (FRic), Divergence (FDiv)
 & Evenness (FEve) from functional trait maps data.
-The method is based on the concept of
-Trait Probability Density (TPD) functions and utilizes kernel density estimation (KDE) for probability density
-estimation.
-For more information on parameters including a short tutorial based on the included "test_set"
+The method is based on the concept of Trait Probability Density (TPD) functions and 
+utilizes kernel density estimation (KDE) for probability density estimation.
+For more information on parameter tuning and the method, including a short tutorial based on the included "test_set",
 see the associated Appendix D file found in the repository Documents folder.
-This file and the entire repository is associated to the manuscript:
+This file, and the entire repository, are associated to the manuscript:
 "Mapping functional diversity of canopy physiological traits using UAS
 imaging spectroscopy".
 
