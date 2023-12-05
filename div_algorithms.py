@@ -1,6 +1,5 @@
 import multiprocessing as mp
 import argparse
-
 import numpy as np
 from sklearn.neighbors import KernelDensity
 from scipy.spatial import ConvexHull
